@@ -1,4 +1,3 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/orjN5TIA)
 
 <!-- README.md is generated from README.Rmd. Please edit the README.Rmd file -->
 
@@ -24,6 +23,12 @@ you are done with your submission.
 
 Extract from the data below two data sets in long form `deaths` and
 `returns`
+
+Get the data into a format where the five columns for Death\[1-5\] are
+replaced by two columns: Time, and Death. Time should be a number
+between 1 and 5 (look into the function `parse_number`); Death is a
+categorical variables with values “yes”, “no” and ““. Call the resulting
+data set `deaths`.
 
 ``` r
 av <- read.csv("https://raw.githubusercontent.com/fivethirtyeight/data/master/avengers/avengers.csv", stringsAsFactors = FALSE)
@@ -66,16 +71,137 @@ head(av)
     ## 5                                                      Dies in Fear Itself brought back because that's kind of the whole point. Second death in Time Runs Out has not yet returned
     ## 6                                                                                                                                                                             <NA>
 
-Get the data into a format where the five columns for Death\[1-5\] are
-replaced by two columns: Time, and Death. Time should be a number
-between 1 and 5 (look into the function `parse_number`); Death is a
-categorical variables with values “yes”, “no” and ““. Call the resulting
-data set `deaths`.
+``` r
+# View column names
+colnames(av)
+```
+
+    ##  [1] "URL"                         "Name.Alias"                 
+    ##  [3] "Appearances"                 "Current."                   
+    ##  [5] "Gender"                      "Probationary.Introl"        
+    ##  [7] "Full.Reserve.Avengers.Intro" "Year"                       
+    ##  [9] "Years.since.joining"         "Honorary"                   
+    ## [11] "Death1"                      "Return1"                    
+    ## [13] "Death2"                      "Return2"                    
+    ## [15] "Death3"                      "Return3"                    
+    ## [17] "Death4"                      "Return4"                    
+    ## [19] "Death5"                      "Return5"                    
+    ## [21] "Notes"
+
+``` r
+# Load necessary libraries
+library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
+library(tidyr)
+library(readr)
+
+# Convert Death columns into long format and ensure correct categories
+deaths <- av %>%
+  select(Name.Alias, starts_with("Death")) %>%
+  pivot_longer(cols = starts_with("Death"), 
+               names_to = "Time", 
+               values_to = "Death") %>%
+  mutate(Time = readr::parse_number(Time),  # Convert Time to numeric
+         Death = case_when(
+           Death == "YES" ~ "yes",
+           Death == "NO" ~ "no",
+           TRUE ~ ""  # Keep empty values as they are
+         )) %>%
+  arrange(Name.Alias, Time)  # Sort the data for clarity
+
+# View the first few rows to check the output
+head(deaths)
+```
+
+    ## # A tibble: 6 × 3
+    ##   Name.Alias  Time Death
+    ##   <chr>      <dbl> <chr>
+    ## 1 ""             1 yes  
+    ## 2 ""             1 yes  
+    ## 3 ""             1 yes  
+    ## 4 ""             1 no   
+    ## 5 ""             1 no   
+    ## 6 ""             1 yes
+
+``` r
+# Check structure of deaths dataset
+str(deaths)
+```
+
+    ## tibble [865 × 3] (S3: tbl_df/tbl/data.frame)
+    ##  $ Name.Alias: chr [1:865] "" "" "" "" ...
+    ##  $ Time      : num [1:865] 1 1 1 1 1 1 1 1 1 1 ...
+    ##  $ Death     : chr [1:865] "yes" "yes" "yes" "no" ...
+
+``` r
+# View unique values in Death column
+unique(deaths$Death)
+```
+
+    ## [1] "yes" "no"  ""
 
 Similarly, deal with the returns of characters.
 
+``` r
+# Convert Return columns into long format and ensure correct categories
+returns <- av %>%
+  select(Name.Alias, starts_with("Return")) %>%
+  pivot_longer(cols = starts_with("Return"), 
+               names_to = "Time", 
+               values_to = "Return") %>%
+  mutate(Time = readr::parse_number(Time),  # Convert Time to numeric
+         Return = case_when(
+           Return == "YES" ~ "yes",
+           Return == "NO" ~ "no",
+           TRUE ~ ""  # Keep empty values as they are
+         )) %>%
+  arrange(Name.Alias, Time)  # Sort for clarity
+
+# View the first few rows to check the output
+head(returns)
+```
+
+    ## # A tibble: 6 × 3
+    ##   Name.Alias  Time Return
+    ##   <chr>      <dbl> <chr> 
+    ## 1 ""             1 "yes" 
+    ## 2 ""             1 "no"  
+    ## 3 ""             1 "no"  
+    ## 4 ""             1 ""    
+    ## 5 ""             1 ""    
+    ## 6 ""             1 "yes"
+
 Based on these datasets calculate the average number of deaths an
 Avenger suffers.
+
+``` r
+# Calculate the average number of deaths per Avenger
+avg_deaths <- deaths %>%
+  filter(Death == "yes") %>%
+  group_by(Name.Alias) %>%
+  summarise(total_deaths = n()) %>%
+  summarise(avg_deaths = mean(total_deaths))
+
+avg_deaths
+```
+
+    ## # A tibble: 1 × 1
+    ##   avg_deaths
+    ##        <dbl>
+    ## 1       1.39
 
 ## Individually
 
@@ -85,6 +211,74 @@ Each team member picks one of the statements in the FiveThirtyEight
 [analysis](https://fivethirtyeight.com/features/avengers-death-comics-age-of-ultron/)
 and fact checks it based on the data. Use dplyr functionality whenever
 possible.
+
+### FiveThirtyEight Statement (Selim’s Individual Work)
+
+> “Out of 173 listed Avengers, my analysis found that 69 had died at
+> least one time after they joined the team. That’s about 40 percent of
+> all people who have ever signed on to the team.”
+
+``` r
+# How many Avengers have returned at least once?
+avengers_returned <- returns %>%
+  filter(Return == "yes") %>%
+  summarise(unique_returns = n_distinct(Name.Alias))
+
+# What percentage of Avengers have returned?
+total_avengers <- n_distinct(deaths$Name.Alias)
+
+return_percentage <- (avengers_returned$unique_returns / total_avengers) * 100
+
+# Average number of returns per Avenger
+avg_returns <- returns %>%
+  filter(Return == "yes") %>%
+  group_by(Name.Alias) %>%
+  summarise(total_returns = n()) %>%
+  summarise(avg_returns = mean(total_returns))
+
+# Print results
+avengers_returned
+```
+
+    ## # A tibble: 1 × 1
+    ##   unique_returns
+    ##            <int>
+    ## 1             45
+
+``` r
+return_percentage
+```
+
+    ## [1] 27.60736
+
+``` r
+avg_returns
+```
+
+    ## # A tibble: 1 × 1
+    ##   avg_returns
+    ##         <dbl>
+    ## 1        1.27
+
+This means that on average, an Avenger comes back to life about 1.27
+times in the comics.
+
+``` r
+avengers_died <- deaths %>%
+  filter(Death == "yes") %>%
+  summarise(unique_deaths = n_distinct(Name.Alias))
+
+death_percentage <- (avengers_died$unique_deaths / total_avengers) * 100
+
+death_percentage
+```
+
+    ## [1] 39.2638
+
+Conclusion (FiveThirtyEight’s vs Selims Results) Based on the dataset,
+the percentage of Avengers who have died at least once is 39.26%, which
+is very close to FiveThirtyEight’s claim of 40%. Their claim appears to
+be accurate.
 
 ### FiveThirtyEight Statement
 

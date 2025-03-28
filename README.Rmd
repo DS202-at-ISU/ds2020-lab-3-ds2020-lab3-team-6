@@ -24,22 +24,136 @@ Submit a link to your repository on Canvas (only one submission per team) to sig
 
 Extract from the data below two data sets in long form `deaths` and `returns`
 
+Get the data into a format where the five columns for Death[1-5] are replaced by two columns: Time, and Death. Time should be a number between 1 and 5 (look into the function `parse_number`); Death is a categorical variables with values "yes", "no" and "". Call the resulting data set `deaths`. 
+
 ```{r}
 av <- read.csv("https://raw.githubusercontent.com/fivethirtyeight/data/master/avengers/avengers.csv", stringsAsFactors = FALSE)
 head(av)
 ```
 
-Get the data into a format where the five columns for Death[1-5] are replaced by two columns: Time, and Death. Time should be a number between 1 and 5 (look into the function `parse_number`); Death is a categorical variables with values "yes", "no" and "". Call the resulting data set `deaths`. 
+```{r}
+# View column names
+colnames(av)
 
+```
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(tidyr)
+library(readr)
+
+# Convert Death columns into long format and ensure correct categories
+deaths <- av %>%
+  select(Name.Alias, starts_with("Death")) %>%
+  pivot_longer(cols = starts_with("Death"), 
+               names_to = "Time", 
+               values_to = "Death") %>%
+  mutate(Time = readr::parse_number(Time),  # Convert Time to numeric
+         Death = case_when(
+           Death == "YES" ~ "yes",
+           Death == "NO" ~ "no",
+           TRUE ~ ""  # Keep empty values as they are
+         )) %>%
+  arrange(Name.Alias, Time)  # Sort the data for clarity
+
+# View the first few rows to check the output
+head(deaths)
+
+```
+
+```{r}
+# Check structure of deaths dataset
+str(deaths)
+
+# View unique values in Death column
+unique(deaths$Death)
+
+```
 Similarly, deal with the returns of characters.
 
+```{r}
+# Convert Return columns into long format and ensure correct categories
+returns <- av %>%
+  select(Name.Alias, starts_with("Return")) %>%
+  pivot_longer(cols = starts_with("Return"), 
+               names_to = "Time", 
+               values_to = "Return") %>%
+  mutate(Time = readr::parse_number(Time),  # Convert Time to numeric
+         Return = case_when(
+           Return == "YES" ~ "yes",
+           Return == "NO" ~ "no",
+           TRUE ~ ""  # Keep empty values as they are
+         )) %>%
+  arrange(Name.Alias, Time)  # Sort for clarity
+
+# View the first few rows to check the output
+head(returns)
+
+```
+
 Based on these datasets calculate the average number of deaths an Avenger suffers. 
+
+```{r}
+# Calculate the average number of deaths per Avenger
+avg_deaths <- deaths %>%
+  filter(Death == "yes") %>%
+  group_by(Name.Alias) %>%
+  summarise(total_deaths = n()) %>%
+  summarise(avg_deaths = mean(total_deaths))
+
+avg_deaths
+
+```
 
 ## Individually
 
 For each team member, copy this part of the report. 
 
 Each team member picks one of the statements in the FiveThirtyEight [analysis](https://fivethirtyeight.com/features/avengers-death-comics-age-of-ultron/) and fact checks it based on the data. Use dplyr functionality whenever possible.
+
+### FiveThirtyEight Statement (Selim's Individual Work)
+
+> "Out of 173 listed Avengers, my analysis found that 69 had died at least one time after they joined the team. That’s about 40 percent of all people who have ever signed on to the team."
+
+```{r Selim Statistics 1}
+# How many Avengers have returned at least once?
+avengers_returned <- returns %>%
+  filter(Return == "yes") %>%
+  summarise(unique_returns = n_distinct(Name.Alias))
+
+# What percentage of Avengers have returned?
+total_avengers <- n_distinct(deaths$Name.Alias)
+
+return_percentage <- (avengers_returned$unique_returns / total_avengers) * 100
+
+# Average number of returns per Avenger
+avg_returns <- returns %>%
+  filter(Return == "yes") %>%
+  group_by(Name.Alias) %>%
+  summarise(total_returns = n()) %>%
+  summarise(avg_returns = mean(total_returns))
+
+# Print results
+avengers_returned
+return_percentage
+avg_returns
+```
+This means that on average, an Avenger comes back to life about 1.27 times in the comics.
+
+```{r Selim Statistics 2}
+avengers_died <- deaths %>%
+  filter(Death == "yes") %>%
+  summarise(unique_deaths = n_distinct(Name.Alias))
+
+death_percentage <- (avengers_died$unique_deaths / total_avengers) * 100
+
+death_percentage
+
+```
+
+Conclusion (FiveThirtyEight's vs Selims Results)
+Based on the dataset, the percentage of Avengers who have died at least once is 39.26%, which is very close to FiveThirtyEight's claim of 40%. Their claim appears to be accurate.
+
 
 ### FiveThirtyEight Statement
 
