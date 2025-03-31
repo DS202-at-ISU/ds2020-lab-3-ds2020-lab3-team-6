@@ -280,6 +280,39 @@ the percentage of Avengers who have died at least once is 39.26%, which
 is very close to FiveThirtyEight’s claim of 40%. Their claim appears to
 be accurate.
 
+### FiveThirtyEight Statement (Kush’s Individual Work)
+
+> “The Avengers roster is overwhelmingly male — only 8 percent of all
+> the people who have been Avengers are women.”
+
+``` r
+# Total number of unique Avengers
+
+total_avengers <- av %>%
+  filter(!is.na(Name.Alias)) %>%
+  summarise(n = n_distinct(Name.Alias)) %>%
+  pull(n)
+
+# Total number of unique FEMALE Avengers
+female_avengers <- av %>%
+  filter(Gender == "FEMALE") %>%
+  summarise(n = n_distinct(Name.Alias)) %>%
+  pull(n)
+
+# Calculate percentage
+female_percent <- (female_avengers / total_avengers) * 100
+female_percent
+```
+
+    ## [1] 33.12883
+
+### Conclusion:
+
+According to my analysis (Kush), approximately 33.13% of Avengers are
+female — significantly higher than the 8% reported by FiveThirtyEight.
+This means the original statement underestimates the representation of
+women among Avengers in this dataset. The claim appears inaccurate.
+
 ### FiveThirtyEight Statement
 
 > Quote the statement you are planning to fact-check.
