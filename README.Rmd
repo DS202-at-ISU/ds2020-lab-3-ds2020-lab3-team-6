@@ -4,19 +4,17 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit the README.Rmd file -->
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Lab report #3 - instructions
 
-Follow the instructions posted at https://ds202-at-isu.github.io/labs.html for the lab assignment. The work is meant to be finished during the lab time, but you have time until Monday evening to polish things.
+Follow the instructions posted at <https://ds202-at-isu.github.io/labs.html> for the lab assignment. The work is meant to be finished during the lab time, but you have time until Monday evening to polish things.
 
-Include your answers in this document (Rmd file). Make sure that it knits properly (into the md file). Upload both the Rmd and the md file to your repository.  
+Include your answers in this document (Rmd file). Make sure that it knits properly (into the md file). Upload both the Rmd and the md file to your repository.
 
-All submissions to the github repo will be automatically uploaded for grading once the due date is passed.
-Submit a link to your repository on Canvas (only one submission per team) to signal to the instructors that you are done with your submission.
+All submissions to the github repo will be automatically uploaded for grading once the due date is passed. Submit a link to your repository on Canvas (only one submission per team) to signal to the instructors that you are done with your submission.
 
 # Lab 3: Avenger's Peril
 
@@ -24,7 +22,7 @@ Submit a link to your repository on Canvas (only one submission per team) to sig
 
 Extract from the data below two data sets in long form `deaths` and `returns`
 
-Get the data into a format where the five columns for Death[1-5] are replaced by two columns: Time, and Death. Time should be a number between 1 and 5 (look into the function `parse_number`); Death is a categorical variables with values "yes", "no" and "". Call the resulting data set `deaths`. 
+Get the data into a format where the five columns for Death[1-5] are replaced by two columns: Time, and Death. Time should be a number between 1 and 5 (look into the function `parse_number`); Death is a categorical variables with values "yes", "no" and "". Call the resulting data set `deaths`.
 
 ```{r}
 av <- read.csv("https://raw.githubusercontent.com/fivethirtyeight/data/master/avengers/avengers.csv", stringsAsFactors = FALSE)
@@ -36,6 +34,7 @@ head(av)
 colnames(av)
 
 ```
+
 ```{r}
 # Load necessary libraries
 library(dplyr)
@@ -69,6 +68,7 @@ str(deaths)
 unique(deaths$Death)
 
 ```
+
 Similarly, deal with the returns of characters.
 
 ```{r}
@@ -91,7 +91,7 @@ head(returns)
 
 ```
 
-Based on these datasets calculate the average number of deaths an Avenger suffers. 
+Based on these datasets calculate the average number of deaths an Avenger suffers.
 
 ```{r}
 # Calculate the average number of deaths per Avenger
@@ -107,7 +107,7 @@ avg_deaths
 
 ## Individually
 
-For each team member, copy this part of the report. 
+For each team member, copy this part of the report.
 
 Each team member picks one of the statements in the FiveThirtyEight [analysis](https://fivethirtyeight.com/features/avengers-death-comics-age-of-ultron/) and fact checks it based on the data. Use dplyr functionality whenever possible.
 
@@ -138,6 +138,7 @@ avengers_returned
 return_percentage
 avg_returns
 ```
+
 This means that on average, an Avenger comes back to life about 1.27 times in the comics.
 
 ```{r Selim Statistics 2}
@@ -151,9 +152,34 @@ death_percentage
 
 ```
 
-Conclusion (FiveThirtyEight's vs Selims Results)
-Based on the dataset, the percentage of Avengers who have died at least once is 39.26%, which is very close to FiveThirtyEight's claim of 40%. Their claim appears to be accurate.
+Conclusion (FiveThirtyEight's vs Selims Results) Based on the dataset, the percentage of Avengers who have died at least once is 39.26%, which is very close to FiveThirtyEight's claim of 40%. Their claim appears to be accurate.
 
+### FiveThirtyEight Statement (Kush's Individual Work)
+
+> “The Avengers roster is overwhelmingly male — only 8 percent of all the people who have been Avengers are women.”
+
+```{r your-statement}
+# Total number of unique Avengers
+
+total_avengers <- av %>%
+  filter(!is.na(Name.Alias)) %>%
+  summarise(n = n_distinct(Name.Alias)) %>%
+  pull(n)
+
+# Total number of unique FEMALE Avengers
+female_avengers <- av %>%
+  filter(Gender == "FEMALE") %>%
+  summarise(n = n_distinct(Name.Alias)) %>%
+  pull(n)
+
+# Calculate percentage
+female_percent <- (female_avengers / total_avengers) * 100
+female_percent
+```
+
+### Conclusion:
+
+According to my analysis (Kush), approximately `r round(female_percent, 2)`% of Avengers are female — significantly higher than the 8% reported by FiveThirtyEight. This means the original statement underestimates the representation of women among Avengers in this dataset. The claim appears inaccurate.
 
 ### FiveThirtyEight Statement
 
