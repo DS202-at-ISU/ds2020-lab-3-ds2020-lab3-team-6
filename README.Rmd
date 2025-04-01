@@ -177,9 +177,37 @@ female_percent <- (female_avengers / total_avengers) * 100
 female_percent
 ```
 
+### FiveThirtyEight Statement (Ash’s Individual Work)
+
+> “Many Avengers have died multiple times — some even five times!”
+
+```{r}
+# Count how many times each Avenger has died
+death_counts <- deaths %>%
+  filter(Death == "yes") %>%
+  group_by(Name.Alias) %>%
+  summarise(num_deaths = n()) %>%
+  arrange(desc(num_deaths))
+
+# Count Avengers who died more than once
+multi_deaths <- death_counts %>%
+  filter(num_deaths > 1) %>%
+  summarise(count = n())
+
+# Count Avengers who died exactly five times
+five_deaths <- death_counts %>%
+  filter(num_deaths == 5) %>%
+  summarise(count = n())
+
+multi_deaths
+five_deaths
+```
+
 ### Conclusion:
 
 According to my analysis (Kush), approximately `r round(female_percent, 2)`% of Avengers are female — significantly higher than the 8% reported by FiveThirtyEight. This means the original statement underestimates the representation of women among Avengers in this dataset. The claim appears inaccurate.
+
+According to my analysis (Ash), several Avengers have died multiple times — with `r five_deaths$count` character(s) dying exactly five times and `r multi_deaths$count` dying more than once. This confirms the FiveThirtyEight statement that “many Avengers have died multiple times — some even five times.” The claim appears accurate based on the dataset.
 
 ### FiveThirtyEight Statement
 
